@@ -11,6 +11,10 @@ public class NewMonoBehaviourScript : MonoBehaviour
     public float maxLookAngle = 80f; // Angle maximum pour regarder vers le haut/bas
     public int maxHealth = 100; // Points de vie maximum
     
+    [Header("Animation Settings")]
+    [Tooltip("Activer ou désactiver les animations du joueur")]
+    public bool enableAnimations = true;
+    
     [Header("Shooting Settings")]
     public GameObject ballPrefab; // Le prefab de la balle à tirer
     public float shootVelocity = 20f; // Vitesse de la balle
@@ -80,6 +84,9 @@ public class NewMonoBehaviourScript : MonoBehaviour
             playerAnimScript = GetComponentInChildren<playerScriptAnim>();
         }
         
+        // Appliquer l'état initial des animations
+        UpdateAnimationState();
+        
         // Sauvegarder l'état kinematic initial du Rigidbody
         if (rb != null)
         {
@@ -142,6 +149,26 @@ public class NewMonoBehaviourScript : MonoBehaviour
         }
     }
 
+    // Méthode pour mettre à jour l'état des animations
+    private void UpdateAnimationState()
+    {
+        // Activer/désactiver l'Animator selon la case à cocher
+        if (animator != null)
+        {
+            animator.enabled = enableAnimations;
+        }
+    }
+    
+    // Appelé quand les valeurs changent dans l'inspecteur
+    void OnValidate()
+    {
+        // Mettre à jour l'état des animations si le script est déjà initialisé
+        if (animator != null)
+        {
+            UpdateAnimationState();
+        }
+    }
+    
     // Update is called once per frame
     void Update()
     {
@@ -162,7 +189,7 @@ public class NewMonoBehaviourScript : MonoBehaviour
         {
             Jump();
             // Déclencher l'animation de saut qui va forcer l'arrêt des autres animations
-            if (playerAnimScript != null)
+            if (enableAnimations && playerAnimScript != null)
             {
                 playerAnimScript.PlayJumpAnimation();
             }
@@ -215,7 +242,7 @@ public class NewMonoBehaviourScript : MonoBehaviour
         
         // Détecter le mouvement et déclencher l'animation de marche
         bool isMoving = (Mathf.Abs(horizontal) > 0.1f || Mathf.Abs(vertical) > 0.1f);
-        if (isMoving && isGrounded && playerAnimScript != null)
+        if (enableAnimations && isMoving && isGrounded && playerAnimScript != null)
         {
             playerAnimScript.PlayWalkAnimation();
         }
@@ -381,12 +408,12 @@ public class NewMonoBehaviourScript : MonoBehaviour
             rb.angularVelocity = Vector3.zero;
         }
         
-        // Réactiver l'Animator
+        // Réactiver l'Animator selon l'état de enableAnimations
         if (animator != null)
         {
-            animator.enabled = true;
-            // Réinitialiser tous les triggers de l'Animator
-            if (animator.parameters != null)
+            animator.enabled = enableAnimations;
+            // Réinitialiser tous les triggers de l'Animator (seulement si activé)
+            if (enableAnimations && animator.parameters != null)
             {
                 foreach (AnimatorControllerParameter param in animator.parameters)
                 {
